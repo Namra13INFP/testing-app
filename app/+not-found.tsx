@@ -2,7 +2,10 @@ import { Link, Stack } from 'expo-router';
 import { StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
+// If ThemedView.tsx exists in app/components, keep this import.
+// Otherwise, update the import path to the correct location, for example:
 import { ThemedView } from '@/components/ThemedView';
+// Or create the file if it does not exist.
 
 export default function NotFoundScreen() {
   return (
