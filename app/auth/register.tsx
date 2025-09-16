@@ -1,5 +1,5 @@
 // app/register.tsx
-import { auth, db } from "@/config/firebaseConfig"; // Adjust the import path as necessary
+import { auth, db } from "@/config/firebaseConfig";
 import { useRouter } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";

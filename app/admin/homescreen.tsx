@@ -1,9 +1,10 @@
 // app/admin/homescreen.tsx
-import { db } from "@/config/firebaseConfig"; // ⬅️ make sure this is correct
+import { db } from "@/config/firebaseConfig";
 import { useRouter } from "expo-router";
 import { collection, getDocs } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AdminHomeScreen() {
   const router = useRouter();
@@ -27,9 +28,10 @@ export default function AdminHomeScreen() {
   }, []);
 
   return (
+   <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}> 
     <ScrollView style={styles.container}>
       {/* Greeting */}
-      <Text style={styles.greeting}>Good Morning, Admin</Text>
+      <Text style={styles.greeting}>Good Day, Admin</Text>
 
       {/* Create Event Card */}
       <TouchableOpacity
@@ -61,8 +63,21 @@ export default function AdminHomeScreen() {
             style={styles.eventCard}
             onPress={() => router.push(`/admin/event_only_one?title=${item.title}`)}
           >
-            {item.imageUrl ? (
-              <Image source={{ uri: item.imageUrl }} style={styles.eventImage} />
+            { (item.imageBase64 || item.imageUrl) ? (
+              <Image
+                source={{
+                  uri: (() => {
+                    const base64 = item.imageBase64;
+                    const url = item.imageUrl;
+                    if (base64 && typeof base64 === 'string') {
+                      return base64.startsWith('data:') ? base64 : `data:image/jpeg;base64,${base64}`;
+                    }
+                    if (url && typeof url === 'string') return url;
+                    return '';
+                  })(),
+                }}
+                style={styles.eventImage}
+              />
             ) : (
               <View style={styles.eventImagePlaceholder} />
             )}
@@ -97,12 +112,13 @@ export default function AdminHomeScreen() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.quickCard}
-          onPress={() => router.push("/admin/")}
+          onPress={() => router.push("/admin/drafts")}
         >
           <Text style={styles.quickText}>Drafts</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -110,7 +126,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    padding: 16,
+    padding: 20,
   },
   greeting: {
     fontSize: 22,

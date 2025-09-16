@@ -1,4 +1,4 @@
-import { auth, db } from "@/config/firebaseConfig"; // your firebase setup
+import { auth, db } from "@/config/firebaseConfig";
 import { useRouter } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
