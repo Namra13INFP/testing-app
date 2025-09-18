@@ -61,6 +61,7 @@ export default function ManageEventsScreen() {
                   })(),
                 }}
                 style={styles.eventImage}
+                blurRadius={2}
               />
             ) : (
               <View style={styles.eventImagePlaceholder} />
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#111",
+    color: "orange",
     marginBottom: 40,
   },
   eventCard: {
@@ -98,6 +99,7 @@ const styles = StyleSheet.create({
   eventImage: {
     width: "100%",
     height: 180,
+    opacity: 0.9,
   },
   eventImagePlaceholder: {
     width: "100%",
