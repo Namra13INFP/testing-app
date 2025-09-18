@@ -61,7 +61,7 @@ export default function ManageEventsScreen() {
                   })(),
                 }}
                 style={styles.eventImage}
-                blurRadius={2}
+                // blurRadius={2}
               />
             ) : (
               <View style={styles.eventImagePlaceholder} />
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   eventImage: {
     width: "100%",
     height: 180,
-    opacity: 0.9,
+    // opacity: 0.9,
   },
   eventImagePlaceholder: {
     width: "100%",
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     color: "#111",
     textShadowColor: "#fff",       // pure black shadow
     textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
+    textShadowRadius: 3,
 
   },
   eventSubtitle: {

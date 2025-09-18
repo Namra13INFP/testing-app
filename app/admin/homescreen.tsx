@@ -83,7 +83,7 @@ export default function AdminHomeScreen() {
             )}
             <Text style={styles.eventTitle}>{item.title}</Text>
             <Text style={styles.eventSubtitle}>
-              {item.date} | {item.venue}
+             {item.location}
             </Text>
           </TouchableOpacity>
         )}
