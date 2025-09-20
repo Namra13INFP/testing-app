@@ -1,104 +1,158 @@
-// app/admin/HomeScreen.tsx
-import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { db } from "@/config/firebaseConfig";
+import { useRouter } from "expo-router";
+import { collection, onSnapshot } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
+import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function AdminHomeScreen() {
-  return (
-    <ScrollView style={styles.container}>
-      {/* Greeting */}
-      <Text style={styles.greeting}>Good Morning, Admin</Text>
+export default function CustomerHome() {
+  const [events, setEvents] = useState<any[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<any[]>([]);
+  const [location, setLocation] = useState("");
+  const [capacity, setCapacity] = useState("");
+  const [expanded, setExpanded] = useState(false);
+  const router = useRouter();
 
-      {/* Gradient Header Card */}
-      <LinearGradient
-        colors={["#FF8C42", "#FF6B00"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.headerCard}
-      >
-        <Text style={styles.headerTitle}>Create a new event</Text>
-        <Text style={styles.headerSubtitle}>
-          Start managing your events with ease.
-        </Text>
-      </LinearGradient>
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, "events"), (snapshot) => {
+      const eventsData: any[] = [];
+      snapshot.forEach((doc) => eventsData.push(doc.data()));
+      setEvents(eventsData);
+      setFilteredEvents(eventsData); // reset filter on update
+    });
 
-      {/* Quick Access */}
-      <Text style={styles.sectionTitle}>Quick Access</Text>
-      <View style={styles.quickAccessRow}>
-        <TouchableOpacity style={styles.quickAccessCard}>
-          <Ionicons name="list" size={28} color="#FF6B00" />
-          <Text style={styles.quickAccessText}>Requests</Text>
-        </TouchableOpacity>
+    // cleanup when screen unmounts
+    return () => unsub();
+  }, []);
 
-        <TouchableOpacity style={styles.quickAccessCard}>
-          <MaterialIcons name="payment" size={28} color="#FF6B00" />
-          <Text style={styles.quickAccessText}>Payments</Text>
-        </TouchableOpacity>
 
-        <TouchableOpacity style={styles.quickAccessCard}>
-          <FontAwesome5 name="user-plus" size={24} color="#FF6B00" />
-          <Text style={styles.quickAccessText}>Add Employees</Text>
-        </TouchableOpacity>
+
+  // ---- 🔹 Filter logic ----
+  useEffect(() => {
+    let data = events;
+
+    if (location.trim() !== "") {
+      data = data.filter((item) =>
+        item.location?.toLowerCase().includes(location.toLowerCase())
+      );
+    }
+
+    if (capacity.trim() !== "") {
+      const enteredCap = parseInt(capacity, 10);
+      if (!isNaN(enteredCap)) {
+        data = data.filter((item) => item.capacity >= enteredCap);
+      }
+    }
+
+    setFilteredEvents(data);
+  }, [location, capacity, events]);
+
+  // ---- 🔹 Render Event Card ----
+  const renderEvent = ({ item }: { item: any }) => (
+    <TouchableOpacity
+      style={styles.eventCard}
+      onPress={() => router.push(`/customer/secure_booking?title=${item.title}`)}
+    >
+      {(item.imageBase64 || item.imageUrl) ? (
+        <Image
+          source={{
+            uri: (() => {
+              const base64 = item.imageBase64;
+              const url = item.imageUrl;
+              if (base64 && typeof base64 === "string") {
+                return base64.startsWith("data:") ? base64 : `data:image/jpeg;base64,${base64}`;
+              }
+              if (url && typeof url === "string") return url;
+              return "";
+            })(),
+          }}
+          style={styles.eventImage}
+        />
+      ) : (
+        <View style={[styles.eventImage, { justifyContent: "center", alignItems: "center" }]}>
+          <Text style={{ color: "#888" }}>No Image</Text>
+        </View>
+      )}
+
+      <View style={styles.eventInfo}>
+        <Text style={styles.eventTitle}>{item.title}</Text>
+        <Text style={styles.eventLocation}>{item.location}</Text>
       </View>
-    </ScrollView>
+    </TouchableOpacity>
+  );
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
+      <View style={styles.container}>
+        <Text style={styles.header}>Available Events</Text>
+        {/* 🔹 Search Bar */}
+        <TouchableOpacity onPress={() => setExpanded(!expanded)} style={styles.searchBar}>
+          <Text>{expanded ? "Close Search" : "Search Events"}</Text>
+        </TouchableOpacity>
+
+        {expanded && (
+          <View style={styles.searchFields}>
+            <TextInput
+              placeholder="Location"
+              value={location}
+              onChangeText={setLocation}
+              style={styles.input}
+            />
+            <TextInput
+              placeholder="Capacity"
+              value={capacity}
+              onChangeText={setCapacity}
+              keyboardType="numeric"
+              style={styles.input}
+            />
+          </View>
+        )}
+
+        {/* 🔹 Events List */}
+        <FlatList
+          data={filteredEvents}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={renderEvent}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    padding: 16,
-  },
-  greeting: {
+  container: { flex: 1, backgroundColor: "#fff", padding: 10 },
+  header: {
     fontSize: 22,
-    fontWeight: "600",
-    marginBottom: 12,
-    color: "#333",
-  },
-  headerCard: {
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-  },
-  headerTitle: {
-    fontSize: 20,
     fontWeight: "700",
-    color: "#FFF",
-    marginBottom: 6,
+    color: "orange",
+    marginBottom: 40,
   },
-  headerSubtitle: {
-    fontSize: 14,
-    color: "#FFF",
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 12,
-    color: "#333",
-  },
-  quickAccessRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  quickAccessCard: {
-    flex: 1,
+  searchBar: {
+    backgroundColor: "#eee",
+    borderColor: "#ccc",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 10,
     alignItems: "center",
-    backgroundColor: "#F8F8F8",
-    paddingVertical: 20,
-    marginHorizontal: 5,
-    borderRadius: 14,
+  },
+  searchFields: { flexDirection: "row", gap: 10, marginBottom: 10 },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 6,
+    padding: 8,
+  },
+  eventCard: {
+    backgroundColor: "#f9f9f9",
+    borderRadius: 10,
+    marginBottom: 15,
+    overflow: "hidden",
     elevation: 2,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
   },
-  quickAccessText: {
-    marginTop: 8,
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#333",
-  },
+  eventImage: { width: "100%", height: 150, resizeMode: "cover" },
+  eventInfo: { padding: 10 },
+  eventTitle: { fontSize: 16, fontWeight: "bold" },
+  eventLocation: { fontSize: 14, color: "#666" },
 });
