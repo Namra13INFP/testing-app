@@ -203,7 +203,7 @@ export default function SecureBooking() {
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
             <ScrollView style={{ flex: 1, backgroundColor: "white" }} contentContainerStyle={styles.container}>
-                <Text style={styles.header}>Book Event</Text>
+                <Text style={styles.header}>Event Booking</Text>
                    <Text style={styles.subheader}>Customize your own event</Text>
                 {/* Image Picker */}
                 <View style={styles.imageBox}>

@@ -79,7 +79,7 @@ export default function RequestOnlyOne() {
             setLoading(true);
             const ref = doc(db, "requests", String(title));
             await updateDoc(ref, { status: "accepted" });
-            router.push("/admin/add_employee");
+            router.push({ pathname: "/admin/add_employee", params: { requestTitle: title } });
           } catch (err) {
             console.error(err);
             Alert.alert("Error", "Failed to accept request.");
