@@ -1,19 +1,19 @@
+import { db } from "@/config/firebaseConfig"; // adjust relative path if needed
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { db } from "../../config/firebaseConfig"; // adjust relative path if needed
 
 export default function RequestOnlyOne() {
   const { title } = useLocalSearchParams(); // using title as document id
@@ -79,7 +79,7 @@ export default function RequestOnlyOne() {
             setLoading(true);
             const ref = doc(db, "requests", String(title));
             await updateDoc(ref, { status: "accepted" });
-            router.push({ pathname: "/admin/add_employee", params: { requestTitle: title } });
+            router.push({ pathname: "/admin/add_employee", params: { currentRequestId: title } });
           } catch (err) {
             console.error(err);
             Alert.alert("Error", "Failed to accept request.");
