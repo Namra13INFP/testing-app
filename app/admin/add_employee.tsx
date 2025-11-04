@@ -1,7 +1,7 @@
 import { auth, db } from "@/config/firebaseConfig"; // updated import
 import { useLocalSearchParams } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { addDoc, collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
+import { collection, doc, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Button, FlatList, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -97,8 +97,15 @@ const ManageEmployeesScreen = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, employeeEmail, password);
       const uid = userCredential.user?.uid;
 
-      // Add employee doc to Firestore, include the newly created uid
-      await addDoc(collection(db, "employees"), {
+      // Write user metadata in `users/{uid}` so login can find the user role
+      await setDoc(doc(db, "users", uid), {
+        email: employeeEmail,
+        role: "employee",
+        createdAt: new Date(),
+      });
+
+      // Also create/update an `employees/{uid}` document (use uid as id) so admin list can reference the same user
+      await setDoc(doc(db, "employees", uid), {
         uid,
         email: employeeEmail,
         password,
