@@ -3,8 +3,9 @@ import { auth, db } from "@/config/firebaseConfig";
 import { useRouter } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-import React, { useState } from "react";
+import { useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -49,6 +50,7 @@ export default function RegisterScreen() {
   };
 
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
     <View style={styles.container}>
       {/* Gradient Header */}
       <View style={styles.header}>
@@ -91,6 +93,7 @@ export default function RegisterScreen() {
         </TouchableOpacity>
       </View>
     </View>
+    </SafeAreaView>
   );
 }
 

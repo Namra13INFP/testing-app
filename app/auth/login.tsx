@@ -2,8 +2,9 @@ import { auth, db } from "@/config/firebaseConfig";
 import { useRouter } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import React, { useState } from "react";
+import { useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -56,6 +57,7 @@ export default function LoginScreen() {
   };
 
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -90,6 +92,7 @@ export default function LoginScreen() {
         </TouchableOpacity>
       </View>
     </View>
+    </SafeAreaView>
   );
 }
 
