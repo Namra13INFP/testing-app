@@ -88,8 +88,9 @@ const ProgressStatusScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
+      <ScrollView style={styles.container}
+      contentContainerStyle={{ padding: 16 }}>
         {/* Request Image */}
         {(request.imageBase64 || request.imageUrl) ? (
           <Image
