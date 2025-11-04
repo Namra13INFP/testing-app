@@ -94,7 +94,6 @@ const ManageEmployeesScreen = () => {
     const password = generatePassword();
 
     try {
-      // First, register the employee in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, employeeEmail, password);
       const uid = userCredential.user?.uid;
 
