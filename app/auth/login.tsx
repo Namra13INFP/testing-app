@@ -132,3 +132,7 @@ const styles = StyleSheet.create({
   link: { marginTop: 15, textAlign: "center", color: "#ff6f00" },
   error: { color: "red", textAlign: "center", marginBottom: 10 },
 });
+
+// customer password:
+// "narrowfrantic@2200.com"
+// "6uwhwj5m"

@@ -2,7 +2,15 @@ import { db } from "@/config/firebaseConfig";
 import { useRouter } from "expo-router";
 import { collection, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CustomerHome() {
@@ -18,16 +26,12 @@ export default function CustomerHome() {
       const eventsData: any[] = [];
       snapshot.forEach((doc) => eventsData.push(doc.data()));
       setEvents(eventsData);
-      setFilteredEvents(eventsData); // reset filter on update
+      setFilteredEvents(eventsData); 
     });
 
-    // cleanup when screen unmounts
     return () => unsub();
   }, []);
 
-
-
-  // ---- 🔹 Filter logic ----
   useEffect(() => {
     let data = events;
 
@@ -47,7 +51,6 @@ export default function CustomerHome() {
     setFilteredEvents(data);
   }, [location, capacity, events]);
 
-  // ---- 🔹 Render Event Card ----
   const renderEvent = ({ item }: { item: any }) => (
     <TouchableOpacity
       style={styles.eventCard}
@@ -60,7 +63,9 @@ export default function CustomerHome() {
               const base64 = item.imageBase64;
               const url = item.imageUrl;
               if (base64 && typeof base64 === "string") {
-                return base64.startsWith("data:") ? base64 : `data:image/jpeg;base64,${base64}`;
+                return base64.startsWith("data:")
+                  ? base64
+                  : `data:image/jpeg;base64,${base64}`;
               }
               if (url && typeof url === "string") return url;
               return "";
@@ -69,7 +74,9 @@ export default function CustomerHome() {
           style={styles.eventImage}
         />
       ) : (
-        <View style={[styles.eventImage, { justifyContent: "center", alignItems: "center" }]}>
+        <View
+          style={[styles.eventImage, { justifyContent: "center", alignItems: "center" }]}
+        >
           <Text style={{ color: "#888" }}>No Image</Text>
         </View>
       )}
@@ -85,7 +92,7 @@ export default function CustomerHome() {
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
       <View style={styles.container}>
         <Text style={styles.header}>Available Events</Text>
-        {/* 🔹 Search Bar */}
+
         <TouchableOpacity onPress={() => setExpanded(!expanded)} style={styles.searchBar}>
           <Text>{expanded ? "Close Search" : "Search Events"}</Text>
         </TouchableOpacity>
@@ -108,13 +115,22 @@ export default function CustomerHome() {
           </View>
         )}
 
-        {/* 🔹 Events List */}
         <FlatList
           data={filteredEvents}
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderEvent}
-          contentContainerStyle={{ paddingBottom: 20 }}
+          contentContainerStyle={{ paddingBottom: 100 }} 
         />
+      </View>
+
+      {/* 🔶 Bottom Tab Bar */}
+      <View style={styles.tabBar}>
+        <TouchableOpacity
+          style={styles.tabButton}
+          onPress={() => router.push("/customer/payment")}
+        >
+          <Text style={styles.tabButtonText}>PAYMENT</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -155,4 +171,30 @@ const styles = StyleSheet.create({
   eventInfo: { padding: 10 },
   eventTitle: { fontSize: 16, fontWeight: "bold" },
   eventLocation: { fontSize: 14, color: "#666" },
+
+  tabBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderColor: "#ddd",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 10,
+  },
+  tabButton: {
+    backgroundColor: "orange",
+    paddingVertical: 10,
+    paddingHorizontal: 40,
+    borderRadius: 8,
+  },
+  tabButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 16,
+  },
 });
