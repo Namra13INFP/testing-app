@@ -1,10 +1,10 @@
-import { db } from "@/config/firebaseConfig";
+import { auth, db } from "@/config/firebaseConfig";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -20,6 +20,7 @@ import DropDownPicker from "react-native-dropdown-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SecureBooking() {
+    const uid = auth.currentUser?.uid; // gets the logged-in user's UID
     const router = useRouter();
     const { title: eventTitle } = useLocalSearchParams<{ title: string }>();
 
@@ -175,6 +176,7 @@ export default function SecureBooking() {
                 startTime: startTime.toISOString(),
                 endTime: endTime.toISOString(),
                 imageBase64: image,
+                userId: uid,
             });
             Alert.alert("Success", "Request made successfully.");
             router.push("/customer/homescreen");

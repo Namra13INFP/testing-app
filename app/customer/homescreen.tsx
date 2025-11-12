@@ -117,7 +117,7 @@ export default function CustomerHome() {
 
         <FlatList
           data={filteredEvents}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={(item, index) => (item?.title ? String(item.title) : index.toString())}
           renderItem={renderEvent}
           contentContainerStyle={{ paddingBottom: 100 }} 
         />
@@ -127,7 +127,7 @@ export default function CustomerHome() {
       <View style={styles.tabBar}>
         <TouchableOpacity
           style={styles.tabButton}
-          onPress={() => router.push("/customer/payment")}
+          onPress={() => router.push(`/customer/payment`)}
         >
           <Text style={styles.tabButtonText}>PAYMENT</Text>
         </TouchableOpacity>

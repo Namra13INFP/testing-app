@@ -1,239 +1,191 @@
 import { db } from "@/config/firebaseConfig";
-import { useGlobalSearchParams } from "expo-router";
-import { doc, onSnapshot, updateDoc } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import { getAuth } from "firebase/auth";
+import { collection, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
+import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
-type Request = {
-  title: string;
-  location?: string;
+type BookingRequest = {
+  id: string;
   imageBase64?: string;
-  imageUrl?: string;
-  // original fields (kept intact)
-  capacity?: string;
-  drinks?: string;
-  food?: string;
-  // status fields
-  capacityStatus?: string;
-  drinksStatus?: string;
+  location?: string;
   foodStatus?: string;
+  drinksStatus?: string;
+  capacityStatus?: string;
   locationStatus?: string;
-  // cost and its status
   cost?: number | string;
   costStatus?: string;
+  [key: string]: any;
 };
 
-const statusFields = {
-  capacity: "capacityStatus",
-  drinks: "drinksStatus",
-  food: "foodStatus",
-  location: "locationStatus",
-} as const;
+export default function PaymentScreen() {
+  const [requests, setRequests] = useState<BookingRequest[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [payingIds, setPayingIds] = useState<string[]>([]); // For multiple pay buttons
 
-const PaymentScreen: React.FC = () => {
-  const { title } = useGlobalSearchParams<{ title: string }>();
-  const [request, setRequest] = useState<Request | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [paying, setPaying] = useState(false);
-  const [tokenPaid, setTokenPaid] = useState(false);
+  const auth = getAuth();
+  const user = auth.currentUser;
 
   useEffect(() => {
-    if (!title) return;
-    const docRef = doc(db, "requests", title);
+    if (!user) return;
 
-    const unsubscribe = onSnapshot(
-      docRef,
-      (snap) => {
-        if (!snap.exists()) {
-          setRequest(null);
-          setLoading(false);
-          return;
-        }
-        const data = snap.data() as Request;
-        setRequest(data);
-        setTokenPaid(data.costStatus === "paid");
-        setLoading(false);
-      },
-      (err) => {
-        console.error("onSnapshot error:", err);
+    const fetchRequests = async () => {
+      try {
+        const q = query(collection(db, "bookingRequests"), where("userId", "==", user.uid));
+        const snapshot = await getDocs(q);
+        const data: BookingRequest[] = snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+        setRequests(data);
+      } catch (err) {
+        console.error(err);
+        Alert.alert("Error", "Unable to fetch booking requests.");
+      } finally {
         setLoading(false);
       }
-    );
+    };
 
-    return () => unsubscribe();
-  }, [title]);
+    fetchRequests();
+  }, [user]);
 
-  const handlePay = async () => {
-    if (!request || !title) return;
-
-    // simple validation: cost should be a number-like value
-    const costVal = Number(request.cost);
-    if (!costVal || isNaN(costVal)) {
-      Alert.alert("Error", "Invalid cost; cannot compute token payment.");
+  const handlePayment = async (requestId: string, cost?: number | string): Promise<void> => {
+    const parsed = Number(cost);
+    if (!cost || Number.isNaN(parsed) || parsed <= 0) {
+      Alert.alert("Error", "Invalid cost; cannot compute payment.");
       return;
     }
 
-    try {
-      setPaying(true);
+    setPayingIds((prev) => [...prev, requestId]);
 
-      // simulate payment processing
+    try {
+      // Simulate payment delay
       await new Promise((res) => setTimeout(res, 1000));
 
-      const docRef = doc(db, "requests", title);
-      await updateDoc(docRef, { costStatus: "paid" });
+      // Update Firestore costStatus
+      await updateDoc(doc(db, "bookingRequests", requestId), { costStatus: "paid" });
 
-      // optimistic update (will be overwritten by snapshot if necessary)
-      setTokenPaid(true);
       Alert.alert("Payment Success", "Token payment received.");
+      // Update local state to reflect payment
+      setRequests((prev) => prev.map((r) => (r.id === requestId ? { ...r, costStatus: "paid" } : r)));
     } catch (err) {
-      console.error("Payment error:", err);
+      console.error(err);
       Alert.alert("Payment Failed", "Unable to process payment.");
     } finally {
-      setPaying(false);
+      setPayingIds((prev) => prev.filter((id) => id !== requestId));
     }
   };
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
-      </SafeAreaView>
+      </View>
     );
   }
-
-  if (!request) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.empty}>
-          <Text style={styles.emptyText}>Request not found.</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // Helper to read a status field safely
-  const getStatus = (fieldKey: keyof typeof statusFields) => {
-    const key = statusFields[fieldKey];
-    // @ts-ignore — we typed Request with these fields already
-    return (request as any)[key] === "completed" ? "completed" : "pending";
-  };
-
-  const renderStatusRow = (label: string, key: keyof typeof statusFields) => (
-    <View style={styles.statusRow} key={key}>
-      <Text style={styles.statusLabel}>{label}:</Text>
-      <Text style={[styles.statusValue, getStatus(key) === "completed" ? styles.done : styles.pending]}>
-        {getStatus(key)}
-      </Text>
-    </View>
-  );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {/* Image */}
-        {(request.imageBase64 || request.imageUrl) ? (
-          <Image
-            source={{
-              uri: (() => {
-                const base64 = request.imageBase64;
-                const url = request.imageUrl;
-                if (base64 && typeof base64 === "string") {
-                  return base64.startsWith("data:") ? base64 : `data:image/jpeg;base64,${base64}`;
-                }
-                if (url && typeof url === "string") return url;
-                return "";
-              })(),
-            }}
-            style={styles.image}
-            blurRadius={2}
-          />
-        ) : (
-          <View style={styles.imagePlaceholder} />
-        )}
+    <ScrollView style={styles.container}>
+      {requests.length === 0 && (
+        <Text style={{ textAlign: "center", marginTop: 20 }}>No booking requests found.</Text>
+      )}
 
-        {/* Location */}
-        <View style={styles.infoRow}>
-          <Text style={styles.locationText}>{request.location || "No location"}</Text>
-        </View>
+      {requests.length > 0 &&
+        requests.map((request) => {
+          const allCompleted =
+            request.foodStatus === "completed" &&
+            request.drinksStatus === "completed" &&
+            request.capacityStatus === "completed" &&
+            request.locationStatus === "completed";
 
-        {/* Details card */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Request Progress</Text>
+          return (
+            <View key={request.id} style={styles.card}>
+              {/* Image */}
+              {request.imageBase64 ? (
+                <Image
+                  source={{ uri: `data:image/jpeg;base64,${request.imageBase64}` }}
+                  style={styles.image}
+                />
+              ) : null}
+              {/* Location */}
+              {request.location ? <Text style={styles.location}>{request.location}</Text> : null}
 
-          {renderStatusRow("Food", "food")}
-          {renderStatusRow("Drinks", "drinks")}
-          {renderStatusRow("Capacity", "capacity")}
-          {renderStatusRow("Location", "location")}
-        </View>
+              {/* Details Card */}
+              <View style={styles.detailsCard}>
+                <Text>Food Status: {request.foodStatus}</Text>
+                <Text>Drinks Status: {request.drinksStatus}</Text>
+                <Text>Capacity Status: {request.capacityStatus}</Text>
+                <Text>Location Status: {request.locationStatus}</Text>
+                <Text style={{ marginTop: 5 }}>
+                  Overall Status: {allCompleted ? "Completed" : "Pending"}
+                </Text>
+              </View>
 
-        {/* Cost + Pay button */}
-        <View style={styles.paymentRow}>
-          <View style={styles.costBox}>
-            <Text style={styles.costLabel}>Cost</Text>
-            <Text style={styles.costValue}>
-              {request.cost !== undefined ? String(request.cost) : "0"}
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            style={[
-              styles.payButton,
-              (paying || tokenPaid) && styles.payButtonDisabled,
-            ]}
-            onPress={handlePay}
-            disabled={paying || tokenPaid}
-          >
-            <Text style={styles.payButtonText}>
-              {paying ? "Processing..." : tokenPaid ? "Paid" : "Pay"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {tokenPaid && (
-          <View style={styles.paidBadge}>
-            <Text style={styles.paidBadgeText}>Payment Completed</Text>
-          </View>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+              {/* Cost & Pay Button */}
+              <View style={styles.paymentRow}>
+                <Text style={styles.costText}>Cost: {request.cost || "N/A"}</Text>
+                <TouchableOpacity
+                  style={[
+                    styles.bookButton,
+                    { width: 110, justifyContent: "center" },
+                    request.costStatus === "paid" && { backgroundColor: "#4CAF50" },
+                  ]}
+                  onPress={() => handlePayment(request.id, request.cost)}
+                  disabled={request.costStatus === "paid" || payingIds.includes(request.id)}
+                >
+                  <Text style={styles.bookButtonText}>
+                    {payingIds.includes(request.id)
+                      ? "Processing..."
+                      : request.costStatus === "paid"
+                      ? "Paid"
+                      : "Pay"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          );
+        })}
+    </ScrollView>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f7f7f7" },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  image: { width: "100%", height: 220, borderRadius: 8, marginBottom: 12 },
-  imagePlaceholder: { width: "100%", height: 220, borderRadius: 8, backgroundColor: "#ddd", marginBottom: 12 },
-  infoRow: { marginBottom: 12 },
-  locationText: { fontSize: 16, color: "#333" },
-  card: { backgroundColor: "#fff", borderRadius: 12, padding: 16, elevation: 2, marginBottom: 16 },
-  cardTitle: { fontSize: 18, fontWeight: "700", marginBottom: 12 },
-  statusRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 8, borderBottomColor: "#eee", borderBottomWidth: 1 },
-  statusLabel: { fontSize: 16, color: "#444" },
-  statusValue: { fontSize: 16, fontWeight: "600" },
-  done: { color: "green" },
-  pending: { color: "#aa0" },
-  paymentRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8 },
-  costBox: { backgroundColor: "#fff", padding: 12, borderRadius: 8, minWidth: 120, alignItems: "center", elevation: 1 },
-  costLabel: { fontSize: 12, color: "#666" },
-  costValue: { fontSize: 18, fontWeight: "700" },
-  payButton: { backgroundColor: "#1e90ff", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginLeft: 12 },
-  payButtonDisabled: { backgroundColor: "#9dbfe8" },
-  payButtonText: { color: "#fff", fontWeight: "700" },
-  paidBadge: { marginTop: 12, backgroundColor: "#e6ffe6", padding: 10, borderRadius: 8, alignItems: "center" },
-  paidBadgeText: { color: "green", fontWeight: "700" },
-  empty: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emptyText: { fontSize: 16, color: "#666" },
+  container: { flex: 1, padding: 10 },
+  card: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    marginBottom: 15,
+    padding: 10,
+    backgroundColor: "#fff",
+  },
+  image: { width: "100%", height: 200, borderRadius: 10 },
+  location: { marginTop: 5, fontStyle: "italic" },
+  detailsCard: {
+    marginTop: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#eee",
+    borderRadius: 8,
+    backgroundColor: "#f9f9f9",
+  },
+  paymentRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  costText: { fontWeight: "bold", fontSize: 16 },
+  bookButton: {
+    backgroundColor: "#2196F3",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+  },
+  bookButtonText: { color: "#fff", fontWeight: "bold", textAlign: "center" },
 });
-
-export default PaymentScreen;

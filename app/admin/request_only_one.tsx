@@ -2,7 +2,7 @@ import { db } from "@/config/firebaseConfig"; // adjust relative path if needed
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -91,6 +91,21 @@ export default function RequestOnlyOne() {
     ]);
   };
 
+  // Complete logic
+  const handleComplete = async () => {
+    try {
+      setLoading(true);
+      const ref = doc(db, "requests", String(title));
+      await updateDoc(ref, { status: "complete" });
+      router.replace("/admin/homescreen"); // removes request from booking list
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "Failed to mark request as complete.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: "#fff", justifyContent: "center", alignItems: "center" }}>
@@ -100,12 +115,13 @@ export default function RequestOnlyOne() {
   }
 
   if (!request) return null;
+  const isCompleteEnabled = request?.costStatus === "completed";
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
-      <ScrollView 
-      style={{ flex: 1, backgroundColor: "white" }}
-      contentContainerStyle={styles.container}>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: "white" }}
+        contentContainerStyle={styles.container}>
         {/* Header */}
         <Text style={styles.header}>Request Preview</Text>
 
@@ -177,6 +193,17 @@ export default function RequestOnlyOne() {
             <Text style={styles.buttonText}>Accept</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Complete Button */}
+        <View style={{ marginTop: 12 }}>
+          <TouchableOpacity
+            onPress={handleComplete}
+            style={[styles.completeButton, { backgroundColor: "#ef600cff" }]}
+          >
+            <Text style={styles.buttonText}>Mark Complete</Text>
+          </TouchableOpacity>
+        </View>
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -242,6 +269,11 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 10,
     marginLeft: 8,
+  },
+  completeButton: {
+    marginTop: 16,
+    padding: 14,
+    borderRadius: 10,
   },
   buttonText: {
     textAlign: "center",
