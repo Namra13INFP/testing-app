@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type BookingRequest = {
   id: string;
@@ -90,6 +91,7 @@ export default function PaymentScreen() {
   }
 
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}> 
     <ScrollView style={styles.container}>
       {requests.length === 0 && (
         <Text style={{ textAlign: "center", marginTop: 20 }}>No booking requests found.</Text>
@@ -151,11 +153,12 @@ export default function PaymentScreen() {
           );
         })}
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10 },
+  container: { flex: 1, backgroundColor: "#fff" ,padding: 10 },
   card: {
     borderWidth: 1,
     borderColor: "#ccc",
