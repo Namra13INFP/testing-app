@@ -20,17 +20,17 @@ export default function Index() {
           const role = snap.data().role;
 
           if (role === "admin") {
-            router.replace("/admin/homescreen"); // ⬅️ admin screen
+            router.replace("/admin/homescreen"); 
           } else if (role === "employee") {
-            router.replace("/employee/homescreen"); // ⬅️ employee screen
+            router.replace("/employee/homescreen"); 
           } else {
-            router.replace("/customer/homescreen"); // ⬅️ customer screen
+            router.replace("/customer/homescreen"); 
           }
         } else {
-          router.replace("/customer/homescreen"); // default: normal user
+          router.replace("/customer/homescreen"); 
         }
       } else {
-        router.replace("./login"); // no auth, go to login
+        router.replace("./login"); 
       }
       setLoading(false);
     });

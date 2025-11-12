@@ -16,7 +16,9 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "googleServicesFile": "./google-services.json",
+      "package": "com.namra.testingapp" 
     },
     "web": {
       "bundler": "metro",
@@ -24,6 +26,12 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      [
+        "onesignal-expo-plugin",                       
+        {
+          "mode": "development"
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",
@@ -35,10 +43,14 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      "onesignal-expo-plugin"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "oneSignalAppId": "bbbc7661-47ee-42d1-8ac0-b6cac97109cb"         
     }
   }
 }
