@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.namra.testingapp"
     },
     "android": {
       "adaptiveIcon": {
@@ -43,8 +44,7 @@
         }
       ],
       "expo-font",
-      "expo-web-browser",
-      "onesignal-expo-plugin"
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
