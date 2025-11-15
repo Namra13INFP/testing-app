@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "669981118508",
+    "project_id": "testing-evm",
+    "storage_bucket": "testing-evm.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:669981118508:android:627f9ebaf235b424a34189",
+        "android_client_info": {
+          "package_name": "com.namra.testingapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAmMc5ox5bBHQFlTvg1eusESs9aJIF_VVA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
