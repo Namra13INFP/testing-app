@@ -46,5 +46,5 @@ export default function Index() {
     );
   }
 
-  return null; // nothing to show, redirect handled above
+  return null; 
 }
