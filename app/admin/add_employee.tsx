@@ -6,52 +6,29 @@ import { useEffect, useState } from "react";
 import { Button, FlatList, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Email sending function — robust to non-JSON responses (e.g. HTML error pages)
-const sendEmail = async ({
-  to,
-  subject,
-  message,
+// Send credentials to local API as raw JSON body { name, email, pass }
+const sendCredentials = async ({
+  name,
+  email,
+  pass,
 }: {
-  to: string;
-  subject: string;
-  message: string;
+  name: string;
+  email: string;
+  pass: string;
 }): Promise<{ success: boolean; error?: string; raw?: string }> => {
-  const url = "https://email-d6c2vcptr-testing-examples-projects.vercel.app/api/send";
+  // Use localhost node server endpoint
+  const url = "http://localhost:3000/api/sendEmail";
   try {
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ to, subject, message }),
+      body: JSON.stringify({ name, email, pass }),
     });
-
-    const contentType = response.headers.get("content-type") || "";
-
-    // If JSON, parse it. Otherwise, read text and attempt to parse — if parsing fails,
-    // return the raw text for debugging instead of throwing.
-    if (contentType.includes("application/json")) {
-      const json = await response.json();
-      console.log("✅ Email result (json):", json);
-      if (response.ok) return { success: true };
-      return { success: false, error: json?.error ?? JSON.stringify(json), raw: JSON.stringify(json) };
-    }
-
     const text = await response.text();
-    // Some hosts return HTML for errors (starts with '<'), which causes JSON.parse to fail.
-    try {
-      const parsed = JSON.parse(text);
-      console.log("✅ Email result (parsed text->json):", parsed);
-      if (response.ok) return { success: true };
-      return { success: false, error: parsed?.error ?? JSON.stringify(parsed), raw: text };
-    } catch (parseErr) {
-      // Not JSON — surface the text for debugging. If response.ok consider it success with raw body.
-      if (response.ok) {
-        console.warn(`sendEmail: expected JSON but got text/HTML (first 300 chars): ${text.slice(0, 300)}`);
-        return { success: true, raw: text };
-      }
-      return { success: false, error: text || `HTTP ${response.status}`, raw: text };
-    }
+    if (response.ok) return { success: true, raw: text };
+    return { success: false, error: text || `HTTP ${response.status}`, raw: text };
   } catch (error: any) {
-    console.error("❌ sendEmail error:", error);
+    console.error("❌ sendCredentials error:", error);
     return { success: false, error: error?.message ?? String(error) };
   }
 };
@@ -113,18 +90,14 @@ const ManageEmployeesScreen = () => {
         hasLoggedIn: false,
       });
 
-      // Send email
-      const emailResult = await sendEmail({
-        to: employeeEmail,
-        subject: "You're invited as an employee",
-        message: `Hello,\n\nYour account has been created.\nEmail: ${employeeEmail}\nPassword: ${password}\n\nPlease login and change your password.`,
-      });
-      console.log("sendEmail result:", emailResult);
+      // Send credentials to local node server
+      const credResult = await sendCredentials({ name: "", email: employeeEmail, pass: password });
+      console.log("sendCredentials result:", credResult);
 
-      if (emailResult.success) {
+      if (credResult.success) {
         setInviteStatus(`✅ Invitation sent to ${employeeEmail}`);
       } else {
-        setInviteStatus(`❌ Failed to send email: ${emailResult.error}`);
+        setInviteStatus(`❌ Failed to send invite: ${credResult.error}`);
       }
 
       setEmployeeEmail("");
@@ -198,12 +171,9 @@ const styles = StyleSheet.create({
 
 
 
-// fetch("https://email-cnt18suxv-testing-examples-projects.vercel.app/api/send", {
+// Local test helper (commented):
+// fetch("http://localhost:3000/api/sendEmail", {
 //   method: "POST",
 //   headers: { "Content-Type": "application/json" },
-//   body: JSON.stringify({
-//     to: "narrow886@tiffincrane.com",
-//     subject: "Test Email",
-//     message: "Hello from production deploy!"
-//   }),
+//   body: JSON.stringify({ name: "User", email: "narrow886@tiffincrane.com", pass: "secret" }),
 // });

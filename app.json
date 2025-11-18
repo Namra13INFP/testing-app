@@ -27,12 +27,6 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      [
-        "onesignal-expo-plugin",                       
-        {
-          "mode": "development"
-        }
-      ],
       "expo-router",
       [
         "expo-splash-screen",

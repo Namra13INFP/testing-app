@@ -8,8 +8,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState("narrowfrantic@2200.com");
-  const [password, setPassword] = useState("6uwhwj5m");
+  const [email, setEmail] = useState("admin@email.com");
+  const [password, setPassword] = useState("adminme");
   const [error, setError] = useState("");
 
   const validateAndLogin = async () => {
