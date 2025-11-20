@@ -6,6 +6,12 @@ import { useEffect, useState } from "react";
 import { Button, FlatList, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+// Extract the name part from an email (before @)
+const getNameFromEmail = (email: string): string => {
+  const namePart = email.split("@")[0];
+  return namePart || "";
+};
+
 // Send credentials to local API as raw JSON body { name, email, pass }
 const sendCredentials = async ({
   name,
@@ -17,7 +23,7 @@ const sendCredentials = async ({
   pass: string;
 }): Promise<{ success: boolean; error?: string; raw?: string }> => {
   // Use localhost node server endpoint
-  const url = "http://localhost:3000/api/sendEmail";
+  const url = "http://192.168.10.12:3000/api/sendEmail";
   try {
     const response = await fetch(url, {
       method: "POST",
@@ -91,7 +97,7 @@ const ManageEmployeesScreen = () => {
       });
 
       // Send credentials to local node server
-      const credResult = await sendCredentials({ name: "", email: employeeEmail, pass: password });
+      const credResult = await sendCredentials({ name: getNameFromEmail(employeeEmail), email: employeeEmail, pass: password });
       console.log("sendCredentials result:", credResult);
 
       if (credResult.success) {
