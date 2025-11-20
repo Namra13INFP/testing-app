@@ -91,6 +91,8 @@ const ProgressStatusScreen = () => {
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
       <ScrollView style={styles.container}
       contentContainerStyle={{ padding: 16 }}>
+        {/* Title*/}
+        <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 16 }}>{request.title}</Text> 
         {/* Request Image */}
         {(request.imageBase64 || request.imageUrl) ? (
           <Image
