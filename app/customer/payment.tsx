@@ -31,21 +31,47 @@ export default function PaymentScreen() {
   const [requests, setRequests] = useState<BookingRequest[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [payingIds, setPayingIds] = useState<string[]>([]); // For multiple pay buttons
+  const [userId, setUserId] = useState<string | null>(null);
 
   const auth = getAuth();
-  const user = auth.currentUser;
 
   useEffect(() => {
-    if (!user) return;
+    // Listen to auth state changes instead of just reading currentUser
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        console.log("✅ Auth state changed. Current user UID:", user.uid);
+        setUserId(user.uid);
+      } else {
+        console.log("❌ No user logged in");
+        setUserId(null);
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [auth]);
+
+  useEffect(() => {
+    if (!userId) {
+      console.log("⏳ Waiting for userId...");
+      return;
+    }
 
     const fetchRequests = async () => {
       try {
-        const q = query(collection(db, "bookingRequests"), where("userId", "==", user.uid));
+        console.log("🔍 Querying requests where userId ==", userId);
+        const q = query(collection(db, "requests"), where("userId", "==", userId));
         const snapshot = await getDocs(q);
+        console.log("📊 Found", snapshot.docs.length, "requests");
+        
+        if (snapshot.docs.length === 0) {
+          console.warn("⚠️ No requests found for userId:", userId);
+        }
+        
         const data: BookingRequest[] = snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
         setRequests(data);
       } catch (err) {
-        console.error(err);
+        console.error("❌ Fetch error:", err);
         Alert.alert("Error", "Unable to fetch booking requests.");
       } finally {
         setLoading(false);
@@ -53,7 +79,7 @@ export default function PaymentScreen() {
     };
 
     fetchRequests();
-  }, [user]);
+  }, [userId]);
 
   const handlePayment = async (requestId: string, cost?: number | string): Promise<void> => {
     const parsed = Number(cost);
@@ -69,7 +95,7 @@ export default function PaymentScreen() {
       await new Promise((res) => setTimeout(res, 1000));
 
       // Update Firestore costStatus
-      await updateDoc(doc(db, "bookingRequests", requestId), { costStatus: "paid" });
+      await updateDoc(doc(db, "requests", requestId), { costStatus: "paid" });
 
       Alert.alert("Payment Success", "Token payment received.");
       // Update local state to reflect payment
@@ -93,6 +119,8 @@ export default function PaymentScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}> 
     <ScrollView style={styles.container}>
+      <Text style={styles.title}>Payment Screen</Text>
+      
       {requests.length === 0 && (
         <Text style={{ textAlign: "center", marginTop: 20 }}>No booking requests found.</Text>
       )}
@@ -105,12 +133,12 @@ export default function PaymentScreen() {
             request.capacityStatus === "completed" &&
             request.locationStatus === "completed";
 
-          return (
+          return (            
             <View key={request.id} style={styles.card}>
               {/* Image */}
               {request.imageBase64 ? (
                 <Image
-                  source={{ uri: `data:image/jpeg;base64,${request.imageBase64}` }}
+                  source={{ uri: request.imageBase64 }}
                   style={styles.image}
                 />
               ) : null}
@@ -159,9 +187,10 @@ export default function PaymentScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" ,padding: 10 },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 16, color: "#333" },
   card: {
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "orange",
     borderRadius: 10,
     marginBottom: 15,
     padding: 10,
