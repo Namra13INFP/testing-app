@@ -2,6 +2,7 @@
   "expo": {
     "name": "testing-app",
     "slug": "testing-app",
+    "projectId": "your-project-id-here",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -19,7 +20,10 @@
       },
       "edgeToEdgeEnabled": true,
       "googleServicesFile": "./google-services.json",
-      "package": "com.namra.testingapp" 
+      "package": "com.namra.testingapp",
+
+      "permissions": ["NOTIFICATIONS"],
+      "useNextNotificationsApi": true
     },
     "web": {
       "bundler": "metro",

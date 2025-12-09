@@ -4,7 +4,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { doc, setDoc } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Image,
@@ -470,7 +470,5 @@ const styles = StyleSheet.create({
   halfInput: {
     flex: 1,
     marginHorizontal: 4,
-
   },
-
 });
