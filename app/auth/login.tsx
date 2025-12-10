@@ -1,7 +1,8 @@
 import { auth, db } from "@/config/firebaseConfig";
+import registerForPushNotificationsAsync from "@/utils/notifications";
 import { useRouter } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -11,6 +12,18 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("narrowfrantic@2200.com");
   const [password, setPassword] = useState("6uwhwj5m");
   const [error, setError] = useState("");
+
+  // Save token to Firestore
+  const savePushTokenToFirestore = async (uid: string, token: string) => {
+    try {
+      await updateDoc(doc(db, "users", uid), {
+        expoPushToken: token,
+      });
+      console.log("Token saved to Firestore:", token);
+    } catch (err) {
+      console.log("Error saving token:", err);
+    }
+  };
 
   const validateAndLogin = async () => {
     if (!email || !password) {
@@ -29,11 +42,10 @@ export default function LoginScreen() {
 
     try {
       setError("");
-      // Sign in with Firebase
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Get role from Firestore
+      // ⭐ Get user role
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (!userDoc.exists()) {
         setError("User data not found in database");
@@ -41,9 +53,15 @@ export default function LoginScreen() {
       }
 
       const userData = userDoc.data();
-      const role = userData?.role || "user"; // default role = user
+      const role = userData?.role || "user";
 
-      // Navigate based on role
+      // 🔔 Generate token AFTER login
+      const token = await registerForPushNotificationsAsync();
+      if (token) {
+        await savePushTokenToFirestore(user.uid, token);
+      }
+
+      // Navigate
       if (role === "admin") {
         router.push("/admin/homescreen");
       } else if (role === "employee") {
@@ -59,12 +77,10 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Login</Text>
+      <View className="header">
+        <Text className="headerText">Login</Text>
       </View>
 
-      {/* Form */}
       <View style={styles.form}>
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -95,6 +111,7 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
+
 
 // Styles
 const styles = StyleSheet.create({
