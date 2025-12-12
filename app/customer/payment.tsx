@@ -97,6 +97,18 @@ export default function PaymentScreen() {
       // Update Firestore costStatus
       await updateDoc(doc(db, "requests", requestId), { costStatus: "paid" });
 
+      // inform notification server that customer paid full/token
+      try {
+        const NOTIF_SERVER = "http://192.168.10.12:3000";
+        await fetch(`${NOTIF_SERVER}/request/paidFull`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ requestId }),
+        });
+      } catch (err) {
+        console.warn("Failed to notify payment to notification server:", err);
+      }
+
       Alert.alert("Payment Success", "Token payment received.");
       // Update local state to reflect payment
       setRequests((prev) => prev.map((r) => (r.id === requestId ? { ...r, costStatus: "paid" } : r)));

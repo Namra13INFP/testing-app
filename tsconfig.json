@@ -4,6 +4,7 @@
     "strict": true,
     "jsx": "react-jsx",
     "esModuleInterop": true,
+    // "resolveJsonModule": true,
     "allowJs": true,
     "skipLibCheck": true,
     "baseUrl": ".",
@@ -23,3 +24,4 @@
     "app/admin"
   ]
 }
+

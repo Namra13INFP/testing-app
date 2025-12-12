@@ -56,7 +56,19 @@ export default function RequestOnlyOne() {
             setLoading(true);
             const ref = doc(db, "requests", String(title));
             await updateDoc(ref, { status: "rejected" });
-            router.replace("/admin/homescreen");
+                // notify backend
+                try {
+                  const NOTIF_SERVER = "http://192.168.10.12:3000";
+                  await fetch(`${NOTIF_SERVER}/request/rejected`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ requestId: title }),
+                  });
+                } catch (e) {
+                  console.warn("Failed to notify rejection:", e);
+                }
+
+                router.replace("/admin/homescreen");
           } catch (err) {
             console.error(err);
             Alert.alert("Error", "Failed to reject request.");
@@ -79,7 +91,19 @@ export default function RequestOnlyOne() {
             setLoading(true);
             const ref = doc(db, "requests", String(title));
             await updateDoc(ref, { status: "accepted" });
-            router.push({ pathname: "/admin/add_employee", params: { currentRequestId: title } });
+                // notify backend
+                try {
+                  const NOTIF_SERVER = "http://192.168.10.12:3000";
+                  await fetch(`${NOTIF_SERVER}/request/accepted`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ requestId: title }),
+                  });
+                } catch (e) {
+                  console.warn("Failed to notify acceptance:", e);
+                }
+
+                router.push({ pathname: "/admin/add_employee", params: { currentRequestId: title } });
           } catch (err) {
             console.error(err);
             Alert.alert("Error", "Failed to accept request.");
@@ -97,6 +121,18 @@ export default function RequestOnlyOne() {
       setLoading(true);
       const ref = doc(db, "requests", String(title));
       await updateDoc(ref, { status: "complete" });
+      // notify backend
+      try {
+        const NOTIF_SERVER = "http://192.168.10.12:3000";
+        await fetch(`${NOTIF_SERVER}/request/completed`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ requestId: title }),
+        });
+      } catch (e) {
+        console.warn("Failed to notify completion:", e);
+      }
+
       router.replace("/admin/homescreen"); // removes request from booking list
     } catch (err) {
       console.error(err);

@@ -74,6 +74,35 @@ const ProgressStatusScreen = () => {
       await updateDoc(docRef, {
         [statusFields[field]]: newValue ? 'completed' : '',
       });
+      // notify backend for item completed when it becomes completed
+      if (newValue) {
+        try {
+          const NOTIF_SERVER = "http://192.168.10.12:3000";
+          await fetch(`${NOTIF_SERVER}/employee/itemCompleted`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requestId: title, itemKey: field }),
+          });
+        } catch (e) {
+          console.warn('Failed to notify itemCompleted:', e);
+        }
+      }
+
+      // if all checkboxes are now completed, notify allItemsCompleted
+      const current = { ...checkboxes, [field]: newValue };
+      const allCompleted = Object.values(current).every(Boolean);
+      if (allCompleted) {
+        try {
+          const NOTIF_SERVER = "http://192.168.10.12:3000";
+          await fetch(`${NOTIF_SERVER}/employee/allItemsCompleted`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requestId: title }),
+          });
+        } catch (e) {
+          console.warn('Failed to notify allItemsCompleted:', e);
+        }
+      }
     } catch (error) {
       console.error('Error updating checkbox:', error);
     }

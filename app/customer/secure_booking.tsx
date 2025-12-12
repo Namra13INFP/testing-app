@@ -178,6 +178,18 @@ export default function SecureBooking() {
                 imageBase64: image,
                 userId: uid,
             });
+            // notify backend notification service about the new request
+            try {
+                const NOTIF_SERVER = "http://192.168.10.12:3000";
+                await fetch(`${NOTIF_SERVER}/request/new`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ requestId: title }),
+                });
+            } catch (notifErr) {
+                console.warn("Failed to notify notification server:", notifErr);
+            }
+
             Alert.alert("Success", "Request made successfully.");
             router.push("/customer/homescreen");
         } catch (err) {
