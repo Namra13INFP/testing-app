@@ -58,7 +58,7 @@ export default function RequestOnlyOne() {
             await updateDoc(ref, { status: "rejected" });
                 // notify backend
                 try {
-                  const NOTIF_SERVER = "http://192.168.10.12:3000";
+                  const NOTIF_SERVER = "http://192.168.10.12:3000/send";
                   await fetch(`${NOTIF_SERVER}/request/rejected`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -93,7 +93,7 @@ export default function RequestOnlyOne() {
             await updateDoc(ref, { status: "accepted" });
                 // notify backend
                 try {
-                  const NOTIF_SERVER = "http://192.168.10.12:3000";
+                  const NOTIF_SERVER = "http://192.168.10.12:3000/send";
                   await fetch(`${NOTIF_SERVER}/request/accepted`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -123,7 +123,7 @@ export default function RequestOnlyOne() {
       await updateDoc(ref, { status: "complete" });
       // notify backend
       try {
-        const NOTIF_SERVER = "http://192.168.10.12:3000";
+        const NOTIF_SERVER = "http://192.168.10.12:3000/send";
         await fetch(`${NOTIF_SERVER}/request/completed`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },

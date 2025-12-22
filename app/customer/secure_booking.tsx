@@ -180,7 +180,7 @@ export default function SecureBooking() {
             });
             // notify backend notification service about the new request
             try {
-                const NOTIF_SERVER = "http://192.168.10.12:3000";
+                const NOTIF_SERVER = "http://192.168.10.12:3000/send";
                 await fetch(`${NOTIF_SERVER}/request/new`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },

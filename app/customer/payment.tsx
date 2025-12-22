@@ -99,7 +99,7 @@ export default function PaymentScreen() {
 
       // inform notification server that customer paid full/token
       try {
-        const NOTIF_SERVER = "http://192.168.10.12:3000";
+        const NOTIF_SERVER = "http://192.168.10.12:3000/send";
         await fetch(`${NOTIF_SERVER}/request/paidFull`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },

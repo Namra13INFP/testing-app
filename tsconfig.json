@@ -1,5 +1,5 @@
 {
-  "extends": "expo/tsconfig.base",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "strict": true,
     "jsx": "react-jsx",
@@ -22,6 +22,6 @@
     "app/customer",
     "app/auth",
     "app/admin"
-  ]
+, "api_notification/server.js"  ]
 }
 

@@ -23,7 +23,7 @@ const sendCredentials = async ({
   pass: string;
 }): Promise<{ success: boolean; error?: string; raw?: string }> => {
   // Use localhost node server endpoint
-  const url = "http://192.168.10.12:3000/api/sendEmail";
+  const url = "http://192.168.10.13:3001/api/sendEmail";
   try {
     const response = await fetch(url, {
       method: "POST",

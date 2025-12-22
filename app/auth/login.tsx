@@ -9,8 +9,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState("narrowfrantic@2200.com");
-  const [password, setPassword] = useState("6uwhwj5m");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   // Save token to Firestore
@@ -77,8 +77,8 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
     <View style={styles.container}>
-      <View className="header">
-        <Text className="headerText">Login</Text>
+      <View style={styles.header}>
+              <Text style={styles.headerText}>Login</Text>
       </View>
 
       <View style={styles.form}>

@@ -1,7 +1,7 @@
 // server.js
-import express from "express";
-import admin from "firebase-admin";
-import serviceAccount from "./serviceAccountKey.json" assert { type: "json" };
+const express = require("express");
+const admin = require("firebase-admin");
+const serviceAccount = require("./serviceAccountKey.json");
 
 // Initialize firebase-admin only once (safe if module is reloaded)
 if (!admin.apps || admin.apps.length === 0) {
@@ -85,7 +85,8 @@ async function getTokensByRole(role) {
 async function getTokenForUid(uid) {
   const doc = await db.collection("users").doc(uid).get();
   if (!doc.exists) return null;
-  return doc.data().expoPushToken || null;
+  const data = doc.data();
+  return (data && data.expoPushToken) || null;
 }
 
 // ---------- ENDPOINTS (matches your flows) ----------
@@ -99,6 +100,8 @@ app.post("/request/new", async (req, res) => {
     const reqSnap = await db.collection("requests").doc(requestId).get();
     if (!reqSnap.exists) return res.status(404).send("request not found");
     const request = reqSnap.data();
+    if (!request) return res.status(500).send("request data missing");
+    if (!request) return res.status(404).send("request data not found");
     const requestName = request.title || requestId;
 
     const adminTokens = await getTokensByRole("admin");
@@ -109,7 +112,7 @@ app.post("/request/new", async (req, res) => {
     res.json({ success: true, expoRes });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
 
@@ -122,6 +125,7 @@ app.post("/request/paidFull", async (req, res) => {
     const reqSnap = await db.collection("requests").doc(requestId).get();
     if (!reqSnap.exists) return res.status(404).send("request not found");
     const request = reqSnap.data();
+    if (!request) return res.status(500).send("request data missing");
     const requestName = request.title || requestId;
 
     const adminTokens = await getTokensByRole("admin");
@@ -132,7 +136,7 @@ app.post("/request/paidFull", async (req, res) => {
     res.json({ success: true, expoRes });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
 
@@ -144,6 +148,7 @@ app.post("/request/accepted", async (req, res) => {
     const reqSnap = await db.collection("requests").doc(requestId).get();
     if (!reqSnap.exists) return res.status(404).send("request not found");
     const request = reqSnap.data();
+    if (!request) return res.status(500).send("request data missing");
     const requestName = request.title || requestId;
     const customerToken = await getTokenForUid(request.userId);
 
@@ -156,7 +161,7 @@ app.post("/request/accepted", async (req, res) => {
     res.json({ success: true, expoRes });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
 
@@ -168,6 +173,7 @@ app.post("/request/rejected", async (req, res) => {
     const reqSnap = await db.collection("requests").doc(requestId).get();
     if (!reqSnap.exists) return res.status(404).send("request not found");
     const request = reqSnap.data();
+    if (!request) return res.status(500).send("request data missing");
     const requestName = request.title || requestId;
     const customerToken = await getTokenForUid(request.userId);
 
@@ -180,7 +186,7 @@ app.post("/request/rejected", async (req, res) => {
     res.json({ success: true, expoRes });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
 
@@ -192,6 +198,7 @@ app.post("/request/completed", async (req, res) => {
     const reqSnap = await db.collection("requests").doc(requestId).get();
     if (!reqSnap.exists) return res.status(404).send("request not found");
     const request = reqSnap.data();
+    if (!request) return res.status(500).send("request data missing");
     const requestName = request.title || requestId;
     const customerToken = await getTokenForUid(request.userId);
 
@@ -204,7 +211,7 @@ app.post("/request/completed", async (req, res) => {
     res.json({ success: true, expoRes });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
 
@@ -217,6 +224,7 @@ app.post("/employee/itemCompleted", async (req, res) => {
     const reqSnap = await db.collection("requests").doc(requestId).get();
     if (!reqSnap.exists) return res.status(404).send("request not found");
     const request = reqSnap.data();
+    if (!request) return res.status(500).send("request data missing");
     const requestName = request.title || requestId;
 
     const title = `${itemKey} Completed`;
@@ -231,7 +239,7 @@ app.post("/employee/itemCompleted", async (req, res) => {
     res.json({ success: true, expoRes });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
 
@@ -244,6 +252,7 @@ app.post("/employee/allItemsCompleted", async (req, res) => {
     const reqSnap = await db.collection("requests").doc(requestId).get();
     if (!reqSnap.exists) return res.status(404).send("request not found");
     const request = reqSnap.data();
+    if (!request) return res.status(500).send("request data missing");
     const requestName = request.title || requestId;
 
     const adminTokens = await getTokensByRole("admin");
@@ -261,7 +270,7 @@ app.post("/employee/allItemsCompleted", async (req, res) => {
     res.json({ success: true, adminRes, customerRes });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
 
@@ -274,7 +283,7 @@ app.post("/send", async (req, res) => {
     res.json({ success: true, expoRes });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
 
