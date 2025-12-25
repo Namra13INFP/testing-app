@@ -24,7 +24,12 @@
       "permissions": [
         "NOTIFICATIONS"
       ],
-      "useNextNotificationsApi": true
+      "useNextNotificationsApi": true,
+        "config": {
+        "googleMaps": {
+          "apiKey": ""
+        }
+      }
     },
     "web": {
       "bundler": "metro",

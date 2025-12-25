@@ -26,7 +26,7 @@ export default function CustomerHome() {
       const eventsData: any[] = [];
       snapshot.forEach((doc) => eventsData.push(doc.data()));
       setEvents(eventsData);
-      setFilteredEvents(eventsData); 
+      setFilteredEvents(eventsData);
     });
 
     return () => unsub();
@@ -101,12 +101,14 @@ export default function CustomerHome() {
           <View style={styles.searchFields}>
             <TextInput
               placeholder="Location"
+              placeholderTextColor="#999"
               value={location}
               onChangeText={setLocation}
               style={styles.input}
             />
             <TextInput
               placeholder="Capacity"
+              placeholderTextColor="#999"
               value={capacity}
               onChangeText={setCapacity}
               keyboardType="numeric"
@@ -119,7 +121,7 @@ export default function CustomerHome() {
           data={filteredEvents}
           keyExtractor={(item, index) => (item?.title ? String(item.title) : index.toString())}
           renderItem={renderEvent}
-          contentContainerStyle={{ paddingBottom: 100 }} 
+          contentContainerStyle={{ paddingBottom: 100 }}
         />
       </View>
 

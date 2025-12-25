@@ -116,31 +116,41 @@ export default function RequestOnlyOne() {
   };
 
   // Complete logic
-  const handleComplete = async () => {
-    try {
-      setLoading(true);
-      const ref = doc(db, "requests", String(title));
-      await updateDoc(ref, { status: "complete" });
-      // notify backend
-      try {
-        const NOTIF_SERVER = "http://192.168.8.101:4000";
-        await fetch(`${NOTIF_SERVER}/request/completed`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ requestId: title }),
-        });
-      } catch (e) {
-        console.warn("Failed to notify completion:", e);
-      }
+ const handleComplete = () => {
+    Alert.alert("Complete Request", "Are you sure you want to complete this request?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Complete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            setLoading(true);
+            const ref = doc(db, "requests", String(title));
+            await updateDoc(ref, { status: "complete" });
+                // notify backend
+                try {
+                  const NOTIF_SERVER = "http://192.168.8.101:4000";
+                  await fetch(`${NOTIF_SERVER}/request/completed`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ requestId: title }),
+                  });
+                } catch (e) {
+                  console.warn("Failed to notify completion:", e);
+                }
 
-      router.replace("/admin/homescreen"); // removes request from booking list
-    } catch (err) {
-      console.error(err);
-      Alert.alert("Error", "Failed to mark request as complete.");
-    } finally {
-      setLoading(false);
-    }
+                router.replace("/admin/booking_requests");
+          } catch (err) {
+            console.error(err);
+            Alert.alert("Error", "Failed to complete request.");
+          } finally {
+            setLoading(false);
+          }
+        },
+      },
+    ]);
   };
+
 
   if (loading) {
     return (

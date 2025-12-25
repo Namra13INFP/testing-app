@@ -1,7 +1,7 @@
 import { db } from "@/config/firebaseConfig";
 import { useRouter } from "expo-router";
 import { collection, getDocs } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -15,7 +15,11 @@ export default function BookingRequestsScreen() {
         const querySnapshot = await getDocs(collection(db, "requests"));
         const requestsData: any[] = [];
         querySnapshot.forEach((doc) => {
-          requestsData.push(doc.data());
+          const data = doc.data();
+          // Only show requests that are NOT completed or rejected
+          if (data.status !== "complete" && data.status !== "rejected") {
+            requestsData.push(data);
+          }
         });
         setRequests(requestsData);
       } catch (error) {
@@ -29,51 +33,51 @@ export default function BookingRequestsScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#111" }}>
-     <ScrollView style={styles.container}>
+      <ScrollView style={styles.container}>
 
-      <FlatList
-        data={requests}
-        keyExtractor={(item) => item.title}
-        ListHeaderComponent={ListHeader}
-        contentContainerStyle={{ paddingBottom: 24 }}
-        // Let the outer ScrollView handle scrolling
-        scrollEnabled={false}
-        // Helpful for Android nested scrolling
-        nestedScrollEnabled={true}
-        // Disable aggressive clipping to avoid virtualization issues inside ScrollView
-        removeClippedSubviews={false}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.requestCard}
-            onPress={() => router.push(`/admin/request_only_one?title=${item.title}`)}
-          >
-            {(item.imageBase64 || item.imageUrl) ? (
-              <Image
-                source={{
-                  uri: (() => {
-                    const base64 = item.imageBase64;
-                    const url = item.imageUrl;
-                    if (base64 && typeof base64 === 'string') {
-                      return base64.startsWith('data:') ? base64 : `data:image/jpeg;base64,${base64}`;
-                    }
-                    if (url && typeof url === 'string') return url;
-                    return '';
-                  })(),
-                }}
-                style={styles.requestImage}
-                blurRadius={2}
-              />
-            ) : (
-              <View style={styles.requestImagePlaceholder} />
-            )}
-            <View style={styles.overlay}>
-              <Text style={styles.requestTitle}>{item.title}</Text>
-              <Text style={styles.requestSubtitle}>{item.location}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
-     </ScrollView>
+        <FlatList
+          data={requests}
+          keyExtractor={(item) => item.title}
+          ListHeaderComponent={ListHeader}
+          contentContainerStyle={{ paddingBottom: 24 }}
+          // Let the outer ScrollView handle scrolling
+          scrollEnabled={false}
+          // Helpful for Android nested scrolling
+          nestedScrollEnabled={true}
+          // Disable aggressive clipping to avoid virtualization issues inside ScrollView
+          removeClippedSubviews={false}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.requestCard}
+              onPress={() => router.push(`/admin/request_only_one?title=${item.title}`)}
+            >
+              {(item.imageBase64 || item.imageUrl) ? (
+                <Image
+                  source={{
+                    uri: (() => {
+                      const base64 = item.imageBase64;
+                      const url = item.imageUrl;
+                      if (base64 && typeof base64 === 'string') {
+                        return base64.startsWith('data:') ? base64 : `data:image/jpeg;base64,${base64}`;
+                      }
+                      if (url && typeof url === 'string') return url;
+                      return '';
+                    })(),
+                  }}
+                  style={styles.requestImage}
+                  blurRadius={2}
+                />
+              ) : (
+                <View style={styles.requestImagePlaceholder} />
+              )}
+              <View style={styles.overlay}>
+                <Text style={styles.requestTitle}>{item.title}</Text>
+                <Text style={styles.requestSubtitle}>{item.location}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+      </ScrollView>
     </SafeAreaView>
   );
 }
