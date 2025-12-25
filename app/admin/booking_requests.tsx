@@ -1,7 +1,7 @@
 import { db } from "@/config/firebaseConfig";
 import { useRouter } from "expo-router";
 import { collection, getDocs } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -15,7 +15,11 @@ export default function BookingRequestsScreen() {
         const querySnapshot = await getDocs(collection(db, "requests"));
         const requestsData: any[] = [];
         querySnapshot.forEach((doc) => {
-          requestsData.push(doc.data());
+          const data = doc.data();
+          // Only show requests that are NOT completed or rejected
+          if (data.status !== "complete" && data.status !== "rejected") {
+            requestsData.push(data);
+          }
         });
         setRequests(requestsData);
       } catch (error) {

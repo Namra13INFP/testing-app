@@ -77,7 +77,7 @@ const ProgressStatusScreen = () => {
       // notify backend for item completed when it becomes completed
       if (newValue) {
         try {
-          const NOTIF_SERVER = "http://192.168.8.101:4000";
+          const NOTIF_SERVER = "http://192.168.10.12:3000/send";
           await fetch(`${NOTIF_SERVER}/employee/itemCompleted`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -93,7 +93,7 @@ const ProgressStatusScreen = () => {
       const allCompleted = Object.values(current).every(Boolean);
       if (allCompleted) {
         try {
-          const NOTIF_SERVER = "http://192.168.8.101:4000";
+          const NOTIF_SERVER = "http://192.168.10.12:3000/send";
           await fetch(`${NOTIF_SERVER}/employee/allItemsCompleted`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function RegisterScreen() {
@@ -13,7 +13,6 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const validateAndRegister = async () => {
     // basic validations
@@ -32,7 +31,6 @@ export default function RegisterScreen() {
     }
 
     try {
-      setLoading(true);
       setError("");
       // Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -46,10 +44,8 @@ export default function RegisterScreen() {
       });
 
       router.push("./login"); // navigate to login after registration
-      setLoading(false);
     } catch (err: any) {
       setError(err.message);
-      setLoading(false);
     }
   };
 
@@ -67,14 +63,12 @@ export default function RegisterScreen() {
 
         <TextInput
           placeholder="Username"
-          placeholderTextColor="#999"
           style={styles.input}
           value={username}
           onChangeText={setUsername}
         />
         <TextInput
           placeholder="Email"
-          placeholderTextColor="#999"
           style={styles.input}
           value={email}
           onChangeText={setEmail}
@@ -82,25 +76,16 @@ export default function RegisterScreen() {
         />
         <TextInput
           placeholder="Password"
-          placeholderTextColor="#999"
           style={styles.input}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
         />
 
-        <TouchableOpacity 
-          style={[styles.button, loading && styles.buttonDisabled]} 
-          onPress={async () => {
-            await validateAndRegister(); 
-          }}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Register</Text>
-          )}
+        <TouchableOpacity style={styles.button} onPress={async () => {
+         await validateAndRegister(); 
+       }}>
+          <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push("./login")}>
@@ -135,7 +120,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: "#ddd",
-    color: "#000",
   },
   button: {
     backgroundColor: "#ff6f00",
@@ -143,9 +127,6 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignItems: "center",
     marginTop: 10,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
   },
   buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
   link: { marginTop: 15, textAlign: "center", color: "#ff6f00" },

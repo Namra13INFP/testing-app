@@ -3,14 +3,14 @@ import { getAuth } from "firebase/auth";
 import { collection, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -99,7 +99,7 @@ export default function PaymentScreen() {
 
       // inform notification server that customer paid full/token
       try {
-        const NOTIF_SERVER = "http://192.168.8.101:4000";
+        const NOTIF_SERVER = "http://192.168.10.12:3000/send";
         await fetch(`${NOTIF_SERVER}/request/paidFull`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -109,7 +109,7 @@ export default function PaymentScreen() {
         console.warn("Failed to notify payment to notification server:", err);
       }
 
-      Alert.alert("Payment Success", "Token payment received.");
+      Alert.alert("Payment Success", " Payment received.");
       // Update local state to reflect payment
       setRequests((prev) => prev.map((r) => (r.id === requestId ? { ...r, costStatus: "paid" } : r)));
     } catch (err) {
