@@ -24,12 +24,7 @@
       "permissions": [
         "NOTIFICATIONS"
       ],
-      "useNextNotificationsApi": true,
-      "config": {
-        "googleMaps": {
-          "apiKey": ""
-        }
-      }
+      "useNextNotificationsApi": true
     },
     "web": {
       "bundler": "metro",
@@ -65,12 +60,6 @@
         "projectId": "7b8b1726-ef48-4225-9567-484ce7f110ef"
       }
     },
-    "owner": "namrasaleem",
-    "notification": {
-      "icon": "./assets/images/notification-icon.png",
-      "color": "#FF6F00",
-      "androidMode": "default",
-      "androidCollapsedTitle": "New Notification"
-    }
+    "owner": "namrasaleem"
   }
 }

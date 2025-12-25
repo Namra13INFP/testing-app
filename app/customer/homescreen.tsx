@@ -101,14 +101,12 @@ export default function CustomerHome() {
           <View style={styles.searchFields}>
             <TextInput
               placeholder="Location"
-              placeholderTextColor="#999"
               value={location}
               onChangeText={setLocation}
               style={styles.input}
             />
             <TextInput
               placeholder="Capacity"
-              placeholderTextColor="#999"
               value={capacity}
               onChangeText={setCapacity}
               keyboardType="numeric"
@@ -154,7 +152,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     alignItems: "center",
   },
-  searchFields: { flexDirection: "row", gap: "10", marginBottom: 10 },
+  searchFields: { flexDirection: "row", gap: 10, marginBottom: 10 },
   input: {
     flex: 1,
     borderWidth: 1,

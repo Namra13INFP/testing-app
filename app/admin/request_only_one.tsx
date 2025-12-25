@@ -58,7 +58,7 @@ export default function RequestOnlyOne() {
             await updateDoc(ref, { status: "rejected" });
                 // notify backend
                 try {
-                  const NOTIF_SERVER = "http://192.168.10.12:3000/send";
+                  const NOTIF_SERVER = "http://192.168.8.101:4000";
                   await fetch(`${NOTIF_SERVER}/request/rejected`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -68,7 +68,7 @@ export default function RequestOnlyOne() {
                   console.warn("Failed to notify rejection:", e);
                 }
 
-                router.replace("/admin/booking_requests");
+                router.replace("/admin/homescreen");
           } catch (err) {
             console.error(err);
             Alert.alert("Error", "Failed to reject request.");
@@ -93,7 +93,7 @@ export default function RequestOnlyOne() {
             await updateDoc(ref, { status: "accepted" });
                 // notify backend
                 try {
-                  const NOTIF_SERVER = "http://192.168.10.12:3000/send";
+                  const NOTIF_SERVER = "http://192.168.8.101:4000";
                   await fetch(`${NOTIF_SERVER}/request/accepted`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -116,39 +116,30 @@ export default function RequestOnlyOne() {
   };
 
   // Complete logic
-   const handleComplete = () => {
-    Alert.alert("Complete Request", "Are you sure you want to mark this request as complete?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Complete",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            setLoading(true);
-            const ref = doc(db, "requests", String(title));
-            await updateDoc(ref, { status: "complete" });
-            // notify backend
-            try {
-              const NOTIF_SERVER = "http://192.168.8.101:4000";
-              await fetch(`${NOTIF_SERVER}/request/completed`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ requestId: title }),
-              });
-            } catch (e) {
-              console.warn("Failed to notify completion:", e);
-            }
+  const handleComplete = async () => {
+    try {
+      setLoading(true);
+      const ref = doc(db, "requests", String(title));
+      await updateDoc(ref, { status: "complete" });
+      // notify backend
+      try {
+        const NOTIF_SERVER = "http://192.168.8.101:4000";
+        await fetch(`${NOTIF_SERVER}/request/completed`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ requestId: title }),
+        });
+      } catch (e) {
+        console.warn("Failed to notify completion:", e);
+      }
 
-            router.replace("/admin/booking_requests"); // removes request from booking list
-          } catch (err) {
-            console.error(err);
-            Alert.alert("Error", "Failed to mark request as complete.");
-          } finally {
-            setLoading(false);
-          }
-        },
-      },
-    ]);
+      router.replace("/admin/homescreen"); // removes request from booking list
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "Failed to mark request as complete.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {

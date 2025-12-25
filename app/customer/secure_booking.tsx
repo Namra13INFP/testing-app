@@ -39,6 +39,7 @@ export default function SecureBooking() {
     // Token payment: 10% of cost
     const [tokenPaid, setTokenPaid] = useState(false);
     const [paying, setPaying] = useState(false);
+    const [booking, setBooking] = useState(false);
     const [startDate, setStartDate] = useState<Date | null>(null);
     const [endDate, setEndDate] = useState<Date | null>(null);
     const [startTime, setStartTime] = useState<Date | null>(null);
@@ -160,6 +161,7 @@ export default function SecureBooking() {
         }
 
         try {
+            setBooking(true);
             await setDoc(doc(db, "requests", title), {
                 title,
                 location,
@@ -180,7 +182,7 @@ export default function SecureBooking() {
             });
             // notify backend notification service about the new request
             try {
-                const NOTIF_SERVER = "http://192.168.10.12:3000/send";
+                const NOTIF_SERVER = "http://192.168.8.101:4000";
                 await fetch(`${NOTIF_SERVER}/request/new`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -190,11 +192,16 @@ export default function SecureBooking() {
                 console.warn("Failed to notify notification server:", notifErr);
             }
 
-            Alert.alert("Success", "Request made successfully.");
-            router.push("/customer/homescreen");
+            Alert.alert("Success", "Request made successfully.", [
+                {
+                    text: "OK",
+                    onPress: () => router.push("/customer/homescreen"),
+                },
+            ]);
         } catch (err) {
             console.error(err);
             Alert.alert("Error", "Failed to make request.");
+            setBooking(false);
         }
     };
 
@@ -229,8 +236,8 @@ export default function SecureBooking() {
                 </View>
 
                 {/* Form Fields */}
-                <TextInput style={styles.input} placeholder="Event Title" value={title} editable={false} />
-                <TextInput style={styles.input} placeholder="Location" value={location} editable={false} />
+                <TextInput style={styles.input} placeholder="Event Title" placeholderTextColor="#999" value={title} editable={false} />
+                <TextInput style={styles.input} placeholder="Location" placeholderTextColor="#999" value={location} editable={false} />
 
                 {/* Type Dropdown */}
                 <View style={{ zIndex: 3000 }}>
@@ -253,19 +260,19 @@ export default function SecureBooking() {
                         style={styles.input} dropDownContainerStyle={{ borderColor: "#ccc" }} />
                 </View>
 
-                <TextInput style={styles.input} placeholder="Capacity" keyboardType="numeric"
+                <TextInput style={styles.input} placeholder="Capacity" placeholderTextColor="#999" keyboardType="numeric"
                     value={capacity} onChangeText={setCapacity} maxLength={4} />
-                <TextInput style={styles.input} placeholder="Cost" keyboardType="numeric"
+                <TextInput style={styles.input} placeholder="Cost" placeholderTextColor="#999" keyboardType="numeric"
                     value={cost} editable={false} maxLength={7} />
 
                 {/* Date Pickers */}
                 <View style={styles.row}>
                     <TouchableOpacity style={styles.halfInput} onPress={() => setShowPicker({ mode: "date", field: "startDate" })}>
-                        <TextInput style={styles.input} placeholder="Start Date" editable={false}
+                        <TextInput style={styles.input} placeholder="Start Date" placeholderTextColor="#999" editable={false}
                             value={startDate ? startDate.toDateString() : ""} />
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.halfInput} onPress={() => setShowPicker({ mode: "date", field: "endDate" })}>
-                        <TextInput style={styles.input} placeholder="End Date" editable={false}
+                        <TextInput style={styles.input} placeholder="End Date" placeholderTextColor="#999" editable={false}
                             value={endDate ? endDate.toDateString() : ""} />
                     </TouchableOpacity>
                 </View>
@@ -273,11 +280,11 @@ export default function SecureBooking() {
                 {/* Time Pickers */}
                 <View style={styles.row}>
                     <TouchableOpacity style={styles.halfInput} onPress={() => setShowPicker({ mode: "time", field: "startTime" })}>
-                        <TextInput style={styles.input} placeholder="Start Time" editable={false}
+                        <TextInput style={styles.input} placeholder="Start Time" placeholderTextColor="#999" editable={false}
                             value={startTime ? startTime.toLocaleTimeString() : ""} />
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.halfInput} onPress={() => setShowPicker({ mode: "time", field: "endTime" })}>
-                        <TextInput style={styles.input} placeholder="End Time" editable={false}
+                        <TextInput style={styles.input} placeholder="End Time" placeholderTextColor="#999" editable={false}
                             value={endTime ? endTime.toLocaleTimeString() : ""} />
                     </TouchableOpacity>
                 </View>
@@ -308,7 +315,7 @@ export default function SecureBooking() {
                 {/* Token Payment Row (10% of cost) */}
                 <View style={styles.row}>
                     <View style={{ flex: 1, marginRight: 8 }}>
-                        <TextInput style={styles.input} placeholder="Token Payment" editable={false}
+                        <TextInput style={styles.input} placeholder="Token Payment" placeholderTextColor="#999" editable={false}
                             value={(Number(cost) ? (Number(cost) * 0.1).toFixed(2) : "0.00")} />
                     </View>
                     <TouchableOpacity style={[styles.bookButton, { width: 110, justifyContent: "center" }]} onPress={async () => {
@@ -336,8 +343,16 @@ export default function SecureBooking() {
 
                 {/* Book Button */}
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 20 }}>
-                    <TouchableOpacity style={[styles.bookButton, { flex: 1, marginRight: 8 }]} onPress={handleBook}>
-                        <Text style={styles.bookButtonText}>Book</Text>
+                    <TouchableOpacity 
+                        style={[styles.bookButton, { flex: 1, marginRight: 8 }, booking && styles.buttonDisabled]} 
+                        onPress={handleBook}
+                        disabled={booking}
+                    >
+                        {booking ? (
+                            <ActivityIndicator color="#fff" />
+                        ) : (
+                            <Text style={styles.bookButtonText}>Book</Text>
+                        )}
                     </TouchableOpacity>
                 </View>
             </ScrollView>
@@ -355,6 +370,7 @@ const styles = StyleSheet.create({
     placeholderText: { color: "#999" },
     imageButton: { position: "absolute", bottom: 10, right: 10, backgroundColor: "orange", borderRadius: 20, padding: 6 },
     bookButton: { backgroundColor: "orange", padding: 12, borderRadius: 8, alignItems: "center" },
+    buttonDisabled: { opacity: 0.6 },
     bookButtonText: { color: "white", fontWeight: "bold" },
     modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
     modalBox: { backgroundColor: "white", padding: 20, borderRadius: 10, width: 250 },
