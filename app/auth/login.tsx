@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useState } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
@@ -12,6 +12,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Save token to Firestore
   const savePushTokenToFirestore = async (uid: string, token: string) => {
@@ -41,6 +42,7 @@ export default function LoginScreen() {
     }
 
     try {
+      setLoading(true);
       setError("");
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -49,6 +51,7 @@ export default function LoginScreen() {
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (!userDoc.exists()) {
         setError("User data not found in database");
+        setLoading(false);
         return;
       }
 
@@ -69,8 +72,10 @@ export default function LoginScreen() {
       } else {
         router.push("/customer/homescreen");
       }
+      setLoading(false);
     } catch (err: any) {
       setError(err.message);
+      setLoading(false);
     }
   };
 
@@ -86,6 +91,7 @@ export default function LoginScreen() {
 
         <TextInput
           placeholder="Email"
+          placeholderTextColor="#999"
           style={styles.input}
           value={email}
           onChangeText={setEmail}
@@ -93,14 +99,23 @@ export default function LoginScreen() {
         />
         <TextInput
           placeholder="Password"
+          placeholderTextColor="#999"
           style={styles.input}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
         />
 
-        <TouchableOpacity style={styles.button} onPress={validateAndLogin}>
-          <Text style={styles.buttonText}>Login</Text>
+        <TouchableOpacity 
+          style={[styles.button, loading && styles.buttonDisabled]} 
+          onPress={validateAndLogin}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Login</Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push("./register")}>
@@ -137,6 +152,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: "#ddd",
+    color: "#000",
   },
   button: {
     backgroundColor: "#ff6f00",
@@ -144,6 +160,9 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignItems: "center",
     marginTop: 10,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
   link: { marginTop: 15, textAlign: "center", color: "#ff6f00" },

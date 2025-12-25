@@ -3,7 +3,7 @@ import { useLocalSearchParams } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { collection, doc, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { Button, FlatList, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Extract the name part from an email (before @)
@@ -23,7 +23,7 @@ const sendCredentials = async ({
   pass: string;
 }): Promise<{ success: boolean; error?: string; raw?: string }> => {
   // Use localhost node server endpoint
-  const url = "http://192.168.10.13:3001/api/sendEmail";
+  const url = "http://192.168.8.101:3000/api/sendEmail";
   try {
     const response = await fetch(url, {
       method: "POST",
@@ -58,6 +58,8 @@ const ManageEmployeesScreen = () => {
   const [employeeEmail, setEmployeeEmail] = useState("");
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [inviteStatus, setInviteStatus] = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [assigningId, setAssigningId] = useState<string | null>(null);
 
   // Fetch employees
   useEffect(() => {
@@ -77,6 +79,7 @@ const ManageEmployeesScreen = () => {
     const password = generatePassword();
 
     try {
+      setInviting(true);
       const userCredential = await createUserWithEmailAndPassword(auth, employeeEmail, password);
       const uid = userCredential.user?.uid;
 
@@ -110,11 +113,14 @@ const ManageEmployeesScreen = () => {
     } catch (error) {
       console.error("❌ Invite error:", error);
       setInviteStatus("❌ Failed to invite employee");
+    } finally {
+      setInviting(false);
     }
   };
 
   const handleAssign = async (employee: Employee) => {
     try {
+      setAssigningId(employee.id);
       const requestRef = doc(db, "requests", currentRequestId);
       await updateDoc(requestRef, {
         assignedTo: employee.email,
@@ -124,6 +130,8 @@ const ManageEmployeesScreen = () => {
     } catch (error) {
       console.error("❌ Assign error:", error);
       setInviteStatus("❌ Failed to assign employee");
+    } finally {
+      setAssigningId(null);
     }
   };
 
@@ -135,10 +143,21 @@ const ManageEmployeesScreen = () => {
         <TextInput
           style={styles.input}
           placeholder="Employee Email"
+          placeholderTextColor="#999"
           value={employeeEmail}
           onChangeText={setEmployeeEmail}
         />
-        <Button title="Invite" onPress={handleInvite} />
+        <TouchableOpacity
+          style={[styles.button, inviting && styles.buttonDisabled]}
+          onPress={handleInvite}
+          disabled={inviting}
+        >
+          {inviting ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text style={styles.buttonText}>Invite</Text>
+          )}
+        </TouchableOpacity>
       </View>
       {inviteStatus ? <Text style={styles.status}>{inviteStatus}</Text> : null}
 
@@ -149,7 +168,17 @@ const ManageEmployeesScreen = () => {
         renderItem={({ item }) => (
           <View style={styles.row}>
             <Text style={{ flex: 1 }}>{item.name || item.email}</Text>
-            <Button title="Assign" onPress={() => handleAssign(item)} />
+            <TouchableOpacity
+              style={[styles.button, assigningId === item.id && styles.buttonDisabled]}
+              onPress={() => handleAssign(item)}
+              disabled={assigningId === item.id}
+            >
+              {assigningId === item.id ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.buttonText}>Assign</Text>
+              )}
+            </TouchableOpacity>
           </View>
         )}
       />
@@ -166,6 +195,22 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", marginBottom: 8, marginTop: 6 },
   input: { flex: 1, borderWidth: 1, borderColor: "#ccc", padding: 8, marginRight: 8, borderRadius: 4 },
   status: { marginVertical: 4, fontWeight: "bold" },
+  button: {
+    backgroundColor: "#007AFF",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 4,
+    minWidth: 70,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
 });
 
 

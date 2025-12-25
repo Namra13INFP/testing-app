@@ -231,12 +231,14 @@ export default function CreateEvent() {
       <TextInput
         style={styles.input}
         placeholder="Event Title"
+        placeholderTextColor="#999"
         value={title}
         onChangeText={setTitle}
       />
       <TextInput
         style={styles.input}
         placeholder="Location"
+        placeholderTextColor="#999"
         value={location}
         onChangeText={setLocation}
       />
@@ -308,6 +310,7 @@ export default function CreateEvent() {
       <TextInput
         style={styles.input}
         placeholder="Capacity"
+        placeholderTextColor="#999"
         keyboardType="numeric"
         value={capacity}
         onChangeText={setCapacity}
@@ -316,6 +319,7 @@ export default function CreateEvent() {
       <TextInput
         style={styles.input}
         placeholder="Cost"
+        placeholderTextColor="#999"
         keyboardType="numeric"
         value={cost}
         onChangeText={setCost}
@@ -331,6 +335,7 @@ export default function CreateEvent() {
           <TextInput
             style={styles.input}
             placeholder="Start Date"
+            placeholderTextColor="#999"
             editable={false}
             value={startDate ? startDate.toDateString() : ""} // 🔥 show placeholder if null
           />
@@ -343,6 +348,7 @@ export default function CreateEvent() {
           <TextInput
             style={styles.input}
             placeholder="End Date"
+            placeholderTextColor="#999"
             editable={false}
             value={endDate ? endDate.toDateString() : ""}
           />
@@ -359,6 +365,7 @@ export default function CreateEvent() {
           <TextInput
             style={styles.input}
             placeholder="Start Time"
+            placeholderTextColor="#999"
             editable={false}
             value={startTime ? startTime.toLocaleTimeString() : ""}
           />
@@ -371,6 +378,7 @@ export default function CreateEvent() {
           <TextInput
             style={styles.input}
             placeholder="End Time"
+            placeholderTextColor="#999"
             editable={false}
             value={endTime ? endTime.toLocaleTimeString() : ""}
           />
